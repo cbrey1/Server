@@ -16,6 +16,7 @@ public class Server {
 
 	private ServerSocket serverSocket;
 	private ArrayList<ServerConnection> serverConnections;
+	private ArrayList<String> activeUsernames;
 	private boolean serverRunning;
 	private HashMap<String, String> usernames;
 	
@@ -26,11 +27,14 @@ public class Server {
 	 * @postcondition this.serverSocket = new ServerSocket(6066)
 	 * 				this.serverConnections = new ArrayList<ServerConnection>
 	 * 				this.serverRunning = true
+	 * 				this.activeUsernames = new ArrayList<String>()
+	 * 				this.usernames = new HashMap<String, String>()
 	 */
 	public Server() {	
 		try {
-			this.serverSocket = new ServerSocket(6066);
+			this.serverSocket = new ServerSocket(4225);
 			this.serverConnections = new ArrayList<ServerConnection>();
+			this.activeUsernames = new ArrayList<String>();
 			this.serverRunning = true;
 			this.usernames = new HashMap<String, String>();
 		} catch (IOException e) {
@@ -51,7 +55,7 @@ public class Server {
 				String result = "";
 				
 				if (this.serverConnections.isEmpty()) {
-					result = "no";
+					result = "ip not found";
 				}
 				
 				for (ServerConnection conn : this.serverConnections) {
@@ -59,11 +63,11 @@ public class Server {
 						result = "_" + this.usernames.get(socket.getInetAddress().toString());
 					}
 					else {
-						result = "no";
+						result = "ip not found";
 					}
 				}
 				
-				ServerConnection serverConnection = new ServerConnection(socket, this, socket.getInetAddress().toString(), this.usernames);
+				ServerConnection serverConnection = new ServerConnection(socket, this, socket.getInetAddress().toString(), this.usernames, this.activeUsernames);
 				serverConnection.start();
 				this.serverConnections.add(serverConnection);
 				serverConnection.sendMessageToClient(result);

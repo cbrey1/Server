@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /*
@@ -20,21 +21,24 @@ public class ServerConnection extends Thread {
 	private DataOutputStream dataOutputStream;
 	private boolean activeConnection;
 	private HashMap<String, String> usernames;
+	private ArrayList<String> activeUsernames;
 	
 	/**
 	 * Creates a ServerConnection object consisting of a Socket, Server, DataInputStream and DataOutputStream
 	 * 
-	 * @precondition socket != null, server != null
+	 * @precondition socket != null, server != null, ipAddress != null, usernames != null, activeUsernames != null
 	 * @postcondition this.getName() = "ServerConnectionThread"
 	 * 					this.socket = socket
 	 * 					this.server = server
 	 * 					this.activeConnection = true
 	 * 					this.dataInputStream = this.socket.getInputStream()
 	 * 					this.dataOutputStream = this.socket.getOutputStream()
+	 * 					this.usernames = usernames
+	 * 					this.activeUsernames = activeUsernames
 	 * @param socket
 	 * @param server
 	 */
-	public ServerConnection(Socket socket, Server server, String ipAddress, HashMap<String, String> usernames) {
+	public ServerConnection(Socket socket, Server server, String ipAddress, HashMap<String, String> usernames, ArrayList<String> activeUsernames) {
 		super(ipAddress);
 		try {
 			this.socket = socket;
@@ -43,6 +47,7 @@ public class ServerConnection extends Thread {
 			this.dataInputStream = new DataInputStream(this.socket.getInputStream());
 			this.dataOutputStream = new DataOutputStream(this.socket.getOutputStream());
 			this.usernames = usernames;
+			this.activeUsernames = activeUsernames;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -63,13 +68,28 @@ public class ServerConnection extends Thread {
 				
 				String message = this.dataInputStream.readUTF();
 				
-				if (message.charAt(0) != '/') {
+				if (userIsJoiningChat(message)) {
+					this.activeUsernames.add(message.substring(1));
+				}
+				else if (userIsLeavingChat(message)) {
+					boolean usernameFound = false;
+					
+					for (int i = 0; i < this.activeUsernames.size(); i++) {
+						if (this.activeUsernames.get(i).equals(message.substring(1))) {
+							this.activeUsernames.remove(i);
+							usernameFound = true;
+						}
+						if (usernameFound) break;
+					}
+				}
+				else if (!messageContainsIpAddress(message)) {
 					this.sendMessageToAllClients(message);
 				}
 				else {
 					String[] information = message.split("\\s+");
 					this.usernames.put(information[0], information[1]);
 				}
+				this.sendActiveUsersToClients();
 			}
 			this.closeServerConnection();
 		} 
@@ -99,6 +119,27 @@ public class ServerConnection extends Thread {
 				serverConnection.sendMessageToClient(message);
 			}
 		}
+	}
+	
+	private void sendActiveUsersToClients() {
+		StringBuilder stringBuilder = new StringBuilder();
+		stringBuilder.append("u");
+		for (String username : this.activeUsernames) {
+			stringBuilder.append(username + "\n");
+		}
+		this.sendMessageToAllClients(stringBuilder.toString());
+	}
+
+	private boolean messageContainsIpAddress(String message) {
+		return message.charAt(0) == '/';
+	}
+
+	private boolean userIsLeavingChat(String message) {
+		return message.charAt(0) == 'i';
+	}
+
+	private boolean userIsJoiningChat(String message) {
+		return message.charAt(0) == 'a';
 	}
 	
 	private void closeServerConnection() {
