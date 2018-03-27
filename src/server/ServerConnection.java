@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.HashMap;
 
 /*
  * ServerConnection class for Multi-Threaded Chat Application
@@ -12,11 +13,13 @@ import java.net.Socket;
  * @version CS4225 Spring 2018
  */
 public class ServerConnection extends Thread {
+	
 	private Socket socket;
 	private Server server;
 	private DataInputStream dataInputStream;
 	private DataOutputStream dataOutputStream;
 	private boolean activeConnection;
+	private HashMap<String, String> usernames;
 	
 	/**
 	 * Creates a ServerConnection object consisting of a Socket, Server, DataInputStream and DataOutputStream
@@ -31,14 +34,15 @@ public class ServerConnection extends Thread {
 	 * @param socket
 	 * @param server
 	 */
-	public ServerConnection(Socket socket, Server server) {
-		super("ServerConnectionThread");
+	public ServerConnection(Socket socket, Server server, String ipAddress, HashMap<String, String> usernames) {
+		super(ipAddress);
 		try {
 			this.socket = socket;
 			this.server = server;
 			this.activeConnection = true;
 			this.dataInputStream = new DataInputStream(this.socket.getInputStream());
 			this.dataOutputStream = new DataOutputStream(this.socket.getOutputStream());
+			this.usernames = usernames;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -58,7 +62,14 @@ public class ServerConnection extends Thread {
 				}
 				
 				String message = this.dataInputStream.readUTF();
-				this.sendMessageToAllClients(message);
+				
+				if (message.charAt(0) != '/') {
+					this.sendMessageToAllClients(message);
+				}
+				else {
+					String[] information = message.split("\\s+");
+					this.usernames.put(information[0], information[1]);
+				}
 			}
 			this.closeServerConnection();
 		} 
@@ -67,7 +78,15 @@ public class ServerConnection extends Thread {
 		}
 	}
 	
-	private void sendMessageToClient(String message) {
+	/**
+	 * Sends a message to specific client
+	 * 
+	 * @precondition message != null
+	 * @postcondition this.dataOutputStream.flush()
+	 * 
+	 * @param message Message being sent
+	 */
+	public void sendMessageToClient(String message) {
 		try {
 			this.dataOutputStream.writeUTF(message);
 			this.dataOutputStream.flush();
