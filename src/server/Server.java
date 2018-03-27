@@ -55,7 +55,7 @@ public class Server {
 				String result = "";
 				
 				if (this.serverConnections.isEmpty()) {
-					result = "ip not found";
+					result = "n" + this.getAllUsernames();
 				}
 				
 				for (ServerConnection conn : this.serverConnections) {
@@ -63,7 +63,7 @@ public class Server {
 						result = "_" + this.usernames.get(socket.getInetAddress().toString());
 					}
 					else {
-						result = "ip not found";
+						result = "n" + this.getAllUsernames();
 					}
 				}
 				
@@ -88,5 +88,15 @@ public class Server {
 	 */
 	public ArrayList<ServerConnection> getServerConnections() {
 		return this.serverConnections;
+	}
+	
+	private ArrayList<String> getAllUsernames() {
+		ArrayList<String> allUsernames = new ArrayList<String>();
+		
+		for (String value : this.usernames.values()) {
+		    allUsernames.add(value + " ");
+		}
+		
+		return allUsernames;
 	}
 }
