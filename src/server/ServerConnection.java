@@ -136,6 +136,9 @@ public class ServerConnection extends Thread {
 	}
 	
 	private void sendMessageToAllClients(String message) {
+		if (message == null) {
+			throw new IllegalArgumentException("Must be a valid message to send to the Clients");
+		}
 		for (ServerConnection serverConnection : this.server.getServerConnections()) {
 			if (serverConnection.activeConnection) {
 				serverConnection.sendMessageToClient(message);
