@@ -40,6 +40,23 @@ public class ServerConnection extends Thread {
 	 */
 	public ServerConnection(Socket socket, Server server, String ipAddress, HashMap<String, String> usernames, ArrayList<String> activeUsernames) {
 		super(ipAddress);
+		
+		if (socket == null) {
+			throw new IllegalArgumentException("Socket cannot be null");
+		}
+		if (server == null) {
+			throw new IllegalArgumentException("Server cannot be null");
+		}
+		if (ipAddress == null) {
+			throw new IllegalArgumentException("Ip Address cannot be null");
+		}
+		if (usernames == null) {
+			throw new IllegalArgumentException("Map of Ip Addresses and usernames cannot be null");
+		}
+		if (activeUsernames == null) {
+			throw new IllegalArgumentException("Active usernames cannot be null");
+		}
+		
 		try {
 			this.socket = socket;
 			this.server = server;
@@ -109,6 +126,9 @@ public class ServerConnection extends Thread {
 	 * @param message Message being sent
 	 */
 	public void sendMessageToClient(String message) {
+		if (message == null) {
+			throw new IllegalArgumentException("Must be a valid message to send to Client");
+		}
 		try {
 			this.dataOutputStream.writeUTF(message);
 			this.dataOutputStream.flush();
@@ -133,14 +153,23 @@ public class ServerConnection extends Thread {
 	}
 
 	private boolean messageContainsIpAddress(String message) {
+		if (message == null) {
+			throw new IllegalArgumentException("Message is null");
+		}
 		return message.charAt(0) == '/';
 	}
 
 	private boolean userIsLeavingChat(String message) {
+		if (message == null) {
+			throw new IllegalArgumentException("Message is null");
+		}
 		return message.charAt(0) == 'i';
 	}
 
 	private boolean userIsJoiningChat(String message) {
+		if (message == null) {
+			throw new IllegalArgumentException("Message is null");
+		}
 		return message.charAt(0) == 'a';
 	}
 	
