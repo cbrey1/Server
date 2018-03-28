@@ -19,18 +19,18 @@ public class Server {
 	private ArrayList<String> activeUsernames;
 	private boolean serverRunning;
 	private HashMap<String, String> usernames;
-	
+
 	/**
 	 * Creates a Server object to allow Clients to connect to and chat
 	 * 
 	 * @precondition none
 	 * @postcondition this.serverSocket = new ServerSocket(6066)
-	 * 				this.serverConnections = new ArrayList<ServerConnection>
-	 * 				this.serverRunning = true
-	 * 				this.activeUsernames = new ArrayList<String>()
-	 * 				this.usernames = new HashMap<String, String>()
+	 *                this.serverConnections = new ArrayList<ServerConnection>
+	 *                this.serverRunning = true this.activeUsernames = new
+	 *                ArrayList<String>() this.usernames = new HashMap<String,
+	 *                String>()
 	 */
-	public Server() {	
+	public Server() {
 		try {
 			this.serverSocket = new ServerSocket(4225);
 			this.serverConnections = new ArrayList<ServerConnection>();
@@ -41,43 +41,48 @@ public class Server {
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
-	 * Starts the Server Object creating new ServerConnections for each Client that connects
+	 * Starts the Server Object creating new ServerConnections for each Client that
+	 * connects
 	 * 
 	 * @precondition none
 	 * @postcondition this.serverConnections.Count() += 1
 	 */
 	public void start() {
 		try {
-			while(this.serverRunning) {
+			while (this.serverRunning) {
 				Socket socket = this.serverSocket.accept();
 				String result = "";
-				
+
 				if (this.serverConnections.isEmpty()) {
 					result = "n" + this.getAllUsernames();
 				}
-				
+
 				for (ServerConnection conn : this.serverConnections) {
 					if (conn.getName().equals(socket.getInetAddress().toString())) {
-						result = "_" + this.usernames.get(socket.getInetAddress().toString());
-					}
-					else {
+						if (this.usernames.get(socket.getInetAddress().toString()) == null) {
+							result = "username is null";
+						} else {
+							result = "_" + this.usernames.get(socket.getInetAddress().toString());
+						}
+					} else {
 						result = "n" + this.getAllUsernames();
 					}
 				}
-				
-				ServerConnection serverConnection = new ServerConnection(socket, this, socket.getInetAddress().toString(), this.usernames, this.activeUsernames);
+
+				ServerConnection serverConnection = new ServerConnection(socket, this,
+						socket.getInetAddress().toString(), this.usernames, this.activeUsernames);
 				serverConnection.start();
 				this.serverConnections.add(serverConnection);
 				serverConnection.sendMessageToClient(result);
+
 			}
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * Returns the ArrayList of ServerConnections
 	 * 
@@ -89,14 +94,14 @@ public class Server {
 	public ArrayList<ServerConnection> getServerConnections() {
 		return this.serverConnections;
 	}
-	
+
 	private ArrayList<String> getAllUsernames() {
 		ArrayList<String> allUsernames = new ArrayList<String>();
-		
+
 		for (String value : this.usernames.values()) {
-		    allUsernames.add(value + " ");
+			allUsernames.add(value + " ");
 		}
-		
+
 		return allUsernames;
 	}
 }

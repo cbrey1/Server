@@ -87,7 +87,9 @@ public class ServerConnection extends Thread {
 				}
 				else {
 					String[] information = message.split("\\s+");
-					this.usernames.put(information[0], information[1]);
+					if (information[0] != null && information[1] != null) {
+						this.usernames.put(information[0], information[1]);
+					}
 				}
 				this.sendActiveUsersToClients();
 			}
