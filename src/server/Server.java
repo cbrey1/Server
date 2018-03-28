@@ -54,21 +54,22 @@ public class Server {
 			while (this.serverRunning) {
 				Socket socket = this.serverSocket.accept();
 				String result = "";
-
-				if (this.serverConnections.isEmpty()) {
-					result = "n" + this.getAllUsernames();
-				}
+				boolean ipFound = false;
 
 				for (ServerConnection conn : this.serverConnections) {
 					if (conn.getName().equals(socket.getInetAddress().toString())) {
 						if (this.usernames.get(socket.getInetAddress().toString()) == null) {
 							result = "username is null";
 						} else {
-							result = "_" + this.usernames.get(socket.getInetAddress().toString());
+							ipFound = true;
 						}
-					} else {
-						result = "n" + this.getAllUsernames();
 					}
+				}
+				
+				if (ipFound) {
+					result = "_" + this.usernames.get(socket.getInetAddress().toString());
+				} else {
+					result = "n" + this.getAllUsernames();
 				}
 
 				ServerConnection serverConnection = new ServerConnection(socket, this,
